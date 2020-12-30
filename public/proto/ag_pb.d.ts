@@ -675,6 +675,11 @@ export class Submission extends jspb.Message {
   getApproveddate(): string;
   setApproveddate(value: string): Submission;
 
+  getCommentsList(): Array<Comment>;
+  setCommentsList(value: Array<Comment>): Submission;
+  clearCommentsList(): Submission;
+  addComments(value?: Comment, index?: number): Comment;
+
   getReviewsList(): Array<Review>;
   setReviewsList(value: Array<Review>): Submission;
   clearReviewsList(): Submission;
@@ -701,6 +706,7 @@ export namespace Submission {
     released: boolean,
     status: Submission.Status,
     approveddate: string,
+    commentsList: Array<Comment.AsObject>,
     reviewsList: Array<Review.AsObject>,
   }
 
@@ -729,6 +735,52 @@ export class Submissions extends jspb.Message {
 export namespace Submissions {
   export type AsObject = {
     submissionsList: Array<Submission.AsObject>,
+  }
+}
+
+export class Comment extends jspb.Message {
+  getId(): number;
+  setId(value: number): Comment;
+
+  getUserid(): number;
+  setUserid(value: number): Comment;
+
+  getName(): string;
+  setName(value: string): Comment;
+
+  getAvatarurl(): string;
+  setAvatarurl(value: string): Comment;
+
+  getSubmissionid(): number;
+  setSubmissionid(value: number): Comment;
+
+  getCourseid(): number;
+  setCourseid(value: number): Comment;
+
+  getMessage(): string;
+  setMessage(value: string): Comment;
+
+  getPosted(): string;
+  setPosted(value: string): Comment;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Comment.AsObject;
+  static toObject(includeInstance: boolean, msg: Comment): Comment.AsObject;
+  static serializeBinaryToWriter(message: Comment, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Comment;
+  static deserializeBinaryFromReader(message: Comment, reader: jspb.BinaryReader): Comment;
+}
+
+export namespace Comment {
+  export type AsObject = {
+    id: number,
+    userid: number,
+    name: string,
+    avatarurl: string,
+    submissionid: number,
+    courseid: number,
+    message: string,
+    posted: string,
   }
 }
 
@@ -1439,6 +1491,28 @@ export namespace CourseUserRequest {
     coursecode: string,
     courseyear: number,
     userlogin: string,
+  }
+}
+
+export class DeleteCommentRequest extends jspb.Message {
+  getCommentid(): number;
+  setCommentid(value: number): DeleteCommentRequest;
+
+  getCourseid(): number;
+  setCourseid(value: number): DeleteCommentRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DeleteCommentRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: DeleteCommentRequest): DeleteCommentRequest.AsObject;
+  static serializeBinaryToWriter(message: DeleteCommentRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DeleteCommentRequest;
+  static deserializeBinaryFromReader(message: DeleteCommentRequest, reader: jspb.BinaryReader): DeleteCommentRequest;
+}
+
+export namespace DeleteCommentRequest {
+  export type AsObject = {
+    commentid: number,
+    courseid: number,
   }
 }
 

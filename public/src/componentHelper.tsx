@@ -317,7 +317,7 @@ export function mapAllSubmissions(submissions: IAllSubmissionsForEnrollment[], f
         submissions.forEach(grp => {
             // will return an empty name in case groups stopped preloading on the server side
             // to prevent app crashes
-            const group = grp.enrollment.getGroup() ?? new Group();
+            const group = grp.enrollment.getGroup() ?? makeEmptyGroup();
             let hasSubmission = false;
             grp.labs.forEach(l => {
                 if (l.assignment.getId() === a.getId()) {
@@ -338,7 +338,7 @@ export function mapAllSubmissions(submissions: IAllSubmissionsForEnrollment[], f
         let hasSubmission = false;
         usr.labs.forEach(l => {
             if (l.assignment.getId() === a.getId()) {
-                studentMap.set(usr.enrollment.getUser() ?? new User(), l);
+                studentMap.set(usr.enrollment.getUser() ?? makeEmptyUser(), l);
                 hasSubmission = true;
             }
             if (!hasSubmission) {
@@ -362,4 +362,20 @@ export function isValidUserName(username: string): boolean {
 
 export function legalIndex(i: number, len: number): boolean {
     return i >= 0 && i <= len - 1;
+}
+
+// these can be used in places where user or group should come pre-loaded
+// from the database as a field of another object. Makes it easier
+// to detect lost preloads and prevents possible runtime page crashes.
+export function makeEmptyUser(): User {
+    const user = new User();
+    user.setName("User not found");
+    user.setLogin("not_found");
+    return user;
+}
+
+export function makeEmptyGroup(): Group {
+    const group = new Group();
+    group.setName("Group not found");
+    return group;
 }

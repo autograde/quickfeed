@@ -17,11 +17,13 @@ import * as grpcWeb from 'grpc-web';
 import {
   Assignments,
   AuthorizationResponse,
+  Comment,
   Course,
   CourseRequest,
   CourseSubmissions,
   CourseUserRequest,
   Courses,
+  DeleteCommentRequest,
   Enrollment,
   EnrollmentRequest,
   EnrollmentStatusRequest,
@@ -1201,6 +1203,84 @@ export class AutograderServiceClient {
     request,
     metadata || {},
     this.methodInfoRebuildSubmission);
+  }
+
+  methodInfoUpdateComment = new grpcWeb.AbstractClientBase.MethodInfo(
+    Comment,
+    (request: Comment) => {
+      return request.serializeBinary();
+    },
+    Comment.deserializeBinary
+  );
+
+  updateComment(
+    request: Comment,
+    metadata: grpcWeb.Metadata | null): Promise<Comment>;
+
+  updateComment(
+    request: Comment,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.Error,
+               response: Comment) => void): grpcWeb.ClientReadableStream<Comment>;
+
+  updateComment(
+    request: Comment,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.Error,
+               response: Comment) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        new URL('/AutograderService/UpdateComment', this.hostname_).toString(),
+        request,
+        metadata || {},
+        this.methodInfoUpdateComment,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/AutograderService/UpdateComment',
+    request,
+    metadata || {},
+    this.methodInfoUpdateComment);
+  }
+
+  methodInfoDeleteComment = new grpcWeb.AbstractClientBase.MethodInfo(
+    Void,
+    (request: DeleteCommentRequest) => {
+      return request.serializeBinary();
+    },
+    Void.deserializeBinary
+  );
+
+  deleteComment(
+    request: DeleteCommentRequest,
+    metadata: grpcWeb.Metadata | null): Promise<Void>;
+
+  deleteComment(
+    request: DeleteCommentRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.Error,
+               response: Void) => void): grpcWeb.ClientReadableStream<Void>;
+
+  deleteComment(
+    request: DeleteCommentRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.Error,
+               response: Void) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        new URL('/AutograderService/DeleteComment', this.hostname_).toString(),
+        request,
+        metadata || {},
+        this.methodInfoDeleteComment,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/AutograderService/DeleteComment',
+    request,
+    metadata || {},
+    this.methodInfoDeleteComment);
   }
 
   methodInfoCreateBenchmark = new grpcWeb.AbstractClientBase.MethodInfo(

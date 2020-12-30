@@ -6,6 +6,7 @@ import {
 
 import {
     Assignment,
+    Comment,
     Course,
     Enrollment,
     Group,
@@ -16,7 +17,7 @@ import {
     Review,
     GradingBenchmark,
     GradingCriterion,
-    SubmissionsForCourseRequest
+    SubmissionsForCourseRequest,
 } from "../../proto/ag_pb";
 import { ILogger } from "./LogManager";
 import { sortAssignmentsByOrder } from "../componentHelper";
@@ -55,6 +56,8 @@ export interface ICourseProvider {
     updateSubmission(courseID: number, submission: ISubmission): Promise<boolean>;
     updateSubmissions(assignmentID: number, courseID: number, score: number, release: boolean, approve: boolean): Promise<boolean>;
     rebuildSubmission(assignmentID: number, submissionID: number): Promise<ISubmission | null>;
+    updateComment(comment: Comment): Promise<Comment | null>;
+    deleteComment(courseID: number, commentID: number): Promise<boolean>;
     getRepositories(courseID: number, types: Repository.Type[]): Promise<Map<Repository.Type, string>>;
     isEmptyRepo(courseID: number, userID: number, groupID: number): Promise<boolean>;
     addNewBenchmark(bm: GradingBenchmark): Promise<GradingBenchmark | null>;
@@ -338,6 +341,14 @@ export class CourseManager {
         return this.courseProvider.updateSubmissions(assignmentID, courseID, score, release, approve);
     }
 
+    public async updateComment(comment: Comment): Promise<Comment | null> {
+        return this.courseProvider.updateComment(comment);
+    }
+
+    public async deleteComment(courseID: number, commentID: number): Promise<boolean> {
+        return this.courseProvider.deleteComment(courseID, commentID);
+    }
+
     /**
      * Generates a list with last submission build info
      * for every course assignment for all course students.
@@ -376,7 +387,7 @@ export class CourseManager {
                 if (!exists) {
                     const voidSubmission: ISubmissionLink = {
                         assignment: asm,
-                        authorName: studentName,
+                        authorName: studentName
                     };
                     studentLabs.labs.push(voidSubmission);
                 }

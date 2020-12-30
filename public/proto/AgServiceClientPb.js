@@ -100,6 +100,12 @@ var AutograderServiceClient = /** @class */ (function () {
         this.methodInfoRebuildSubmission = new grpcWeb.AbstractClientBase.MethodInfo(ag_pb_1.Submission, function (request) {
             return request.serializeBinary();
         }, ag_pb_1.Submission.deserializeBinary);
+        this.methodInfoUpdateComment = new grpcWeb.AbstractClientBase.MethodInfo(ag_pb_1.Comment, function (request) {
+            return request.serializeBinary();
+        }, ag_pb_1.Comment.deserializeBinary);
+        this.methodInfoDeleteComment = new grpcWeb.AbstractClientBase.MethodInfo(ag_pb_1.Void, function (request) {
+            return request.serializeBinary();
+        }, ag_pb_1.Void.deserializeBinary);
         this.methodInfoCreateBenchmark = new grpcWeb.AbstractClientBase.MethodInfo(ag_pb_1.GradingBenchmark, function (request) {
             return request.serializeBinary();
         }, ag_pb_1.GradingBenchmark.deserializeBinary);
@@ -351,6 +357,20 @@ var AutograderServiceClient = /** @class */ (function () {
         }
         return this.client_.unaryCall(this.hostname_ +
             '/AutograderService/RebuildSubmission', request, metadata || {}, this.methodInfoRebuildSubmission);
+    };
+    AutograderServiceClient.prototype.updateComment = function (request, metadata, callback) {
+        if (callback !== undefined) {
+            return this.client_.rpcCall(new URL('/AutograderService/UpdateComment', this.hostname_).toString(), request, metadata || {}, this.methodInfoUpdateComment, callback);
+        }
+        return this.client_.unaryCall(this.hostname_ +
+            '/AutograderService/UpdateComment', request, metadata || {}, this.methodInfoUpdateComment);
+    };
+    AutograderServiceClient.prototype.deleteComment = function (request, metadata, callback) {
+        if (callback !== undefined) {
+            return this.client_.rpcCall(new URL('/AutograderService/DeleteComment', this.hostname_).toString(), request, metadata || {}, this.methodInfoDeleteComment, callback);
+        }
+        return this.client_.unaryCall(this.hostname_ +
+            '/AutograderService/DeleteComment', request, metadata || {}, this.methodInfoDeleteComment);
     };
     AutograderServiceClient.prototype.createBenchmark = function (request, metadata, callback) {
         if (callback !== undefined) {

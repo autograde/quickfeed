@@ -1,27 +1,35 @@
 import * as React from "react";
 import { ISubmissionLink } from "../../models";
 import { LabResultView } from "../../pages/views/LabResultView";
-import { User, Submission } from "../../../proto/ag_pb";
+import { Comment, User, Submission } from '../../../proto/ag_pb';
 
 interface IStudentLabProps {
-    studentSubmission: ISubmissionLink;
+    submissionLink: ISubmissionLink;
     student: User;
     courseURL: string;
     slipdays: number;
     teacherPageView: boolean;
-    onSubmissionStatusUpdate: (status: Submission.Status) => void;
-    onSubmissionRebuild: (assignmentID: number, submissionID: number) => Promise<boolean>;
+    commenting: boolean;
+    updateSubmissionStatus: (status: Submission.Status) => void;
+    updateComment: (comment: Comment) => void;
+    deleteComment: (commentID: number) => void;
+    rebuildSubmission: (assignmentID: number, submissionID: number) => Promise<boolean>;
+    toggleCommenting: (toggleOn: boolean) => void;
 }
 
 export class StudentLab extends React.Component<IStudentLabProps> {
     public render() {
         return <LabResultView
             slipdays={this.props.slipdays}
-            submissionLink={this.props.studentSubmission}
+            submissionLink={this.props.submissionLink}
             student={this.props.student}
             courseURL={this.props.courseURL}
-            onSubmissionStatusUpdate={this.props.onSubmissionStatusUpdate}
-            onSubmissionRebuild={this.props.onSubmissionRebuild}
+            commenting={this.props.commenting}
+            updateSubmissionStatus={this.props.updateSubmissionStatus}
+            updateComment={this.props.updateComment}
+            deleteComment={this.props.deleteComment}
+            rebuildSubmission={this.props.rebuildSubmission}
+            toggleCommenting={this.props.toggleCommenting}
             teacherPageView={this.props.teacherPageView}
             >
         </LabResultView>;

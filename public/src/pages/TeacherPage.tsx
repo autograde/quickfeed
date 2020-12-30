@@ -5,16 +5,17 @@ import { CourseManager, ILink, ILinkCollection, NavigationManager, UserManager }
 import { View, ViewPage } from "./ViewPage";
 
 import { INavInfo } from "../NavigationHelper";
-import { Assignment, Course, Enrollment, Group, Repository, GradingBenchmark, GradingCriterion, SubmissionsForCourseRequest, Review } from "../../proto/ag_pb";
+import { Assignment, Comment, Course, Enrollment, Group, Repository, GradingBenchmark, GradingCriterion, SubmissionsForCourseRequest, Review } from "../../proto/ag_pb";
 import { CollapsableNavMenu } from "../components/navigation/CollapsableNavMenu";
 import { GroupResults } from "../components/teacher/GroupResults";
 import { MemberView } from "./views/MemberView";
 import { showLoader } from "../loader";
-import { sortCoursesByVisibility, sortAssignmentsByOrder, submissionStatusToString } from "../componentHelper";
+import { sortCoursesByVisibility, sortAssignmentsByOrder, submissionStatusToString } from '../componentHelper';
 import { AssignmentView } from "./views/AssignmentView";
 import { ISubmission } from "../models";
 import { FeedbackView } from "./views/FeedbackView";
 import { ReleaseView } from "./views/ReleaseView";
+import { isNull } from 'util';
 
 export class TeacherPage extends ViewPage {
 
@@ -125,6 +126,7 @@ export class TeacherPage extends ViewPage {
             const curUser = this.userMan.getCurrentUser();
             return <Results
                 course={course}
+                currentUser={curUser?.getId() ?? 0}
                 courseURL={await this.getCourseURL(course.getId())}
                 assignments={sortAssignmentsByOrder(assignments)}
                 allCourseSubmissions={labResults}
@@ -134,8 +136,13 @@ export class TeacherPage extends ViewPage {
                     this.navMan.refresh();
                     return ans;
                 }}
-                onSubmissionStatusUpdate={async (submission: ISubmission): Promise<boolean> => {
-                    return this.approveFunc(submission, course.getId());
+                updateSubmissionStatus={async (submission: ISubmission) => this.setStatus(submission, course.getId())}
+                updateComment={async (comment: Comment) => {
+                    const ans = await this.courseMan.updateComment(comment);
+                    return ans != null;
+                }}
+                deleteComment={(commentID: number) => {
+                    return this.courseMan.deleteComment(course.getId(), commentID);
                 }}>
             </Results>;
         });
@@ -151,14 +158,20 @@ export class TeacherPage extends ViewPage {
                 courseURL={await this.getCourseURL(course.getId())}
                 assignments={sortAssignmentsByOrder(labs)}
                 allGroupSubmissions={labResults}
-                onSubmissionRebuild={async (assignmentID: number, submissionID: number) => {
+                rebuildSubmission={async (assignmentID: number, submissionID: number) => {
                     const ans = await this.courseMan.rebuildSubmission(assignmentID, submissionID);
                     this.navMan.refresh();
                     return ans;
                 }}
-                onSubmissionStatusUpdate={async (submission: ISubmission): Promise<boolean> => {
-                    return this.approveFunc(submission, course.getId());
-                }}>
+                updateSubmissionStatus={async (submission: ISubmission) => this.setStatus(submission, course.getId())}
+                updateComment={async (comment: Comment) => {
+                    const ans = await this.courseMan.updateComment(comment);
+                    return ans != null;
+                }}
+                deleteComment={(commentID: number) => {
+                    return this.courseMan.deleteComment(course.getId(), commentID);
+                }}
+                >
             </GroupResults>;
         });
     }
@@ -354,7 +367,7 @@ export class TeacherPage extends ViewPage {
         };
     }
 
-    public async approveFunc(submission: ISubmission, courseID: number): Promise<boolean> {
+    public async setStatus(submission: ISubmission, courseID: number): Promise<boolean> {
         if (confirm(
             `Do you want to set ${submissionStatusToString(submission.status)} status for this lab?`,
         )) {

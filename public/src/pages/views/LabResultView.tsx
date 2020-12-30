@@ -1,16 +1,22 @@
 import * as React from "react";
 import { LabResult, LastBuild, LastBuildInfo, Row } from "../../components";
 import { ISubmissionLink, ISubmission } from "../../models";
-import { User, Submission } from "../../../proto/ag_pb";
+import { Comment, User, Submission } from "../../../proto/ag_pb";
 import { Release } from "../../components/manual-grading/Release";
+import { CommentList } from '../../components/teacher/CommentList';
+
 interface ILabInfoProps {
     submissionLink: ISubmissionLink;
     student: User;
     courseURL: string;
     slipdays: number;
     teacherPageView: boolean;
-    onSubmissionStatusUpdate: (status: Submission.Status) => void;
-    onSubmissionRebuild: (assignmentID: number, submissionID: number) => Promise<boolean>;
+    commenting: boolean;
+    updateSubmissionStatus: (status: Submission.Status) => void;
+    updateComment: (comment: Comment) => void;
+    deleteComment: (commentID: number) => void;
+    rebuildSubmission: (assignmentID: number, submissionID: number) => Promise<boolean>;
+    toggleCommenting: (toggleOn: boolean) => void;
 }
 
 export class LabResultView extends React.Component<ILabInfoProps> {
@@ -18,6 +24,13 @@ export class LabResultView extends React.Component<ILabInfoProps> {
     public render() {
         if (this.props.submissionLink.submission) {
             const latest = this.props.submissionLink.submission;
+            const commentDiv = <CommentList
+                    comments={this.props.submissionLink.submission.comments}
+                    commenting={this.props.commenting}
+                    updateComment={this.props.updateComment}
+                    deleteComment={this.props.deleteComment}
+                    toggleCommenting={this.props.toggleCommenting}
+                />
             const buildLog = latest.buildLog.split("\n").map((x, i) => <span key={i} >{x}<br /></span>);
             return (
                 <div key="labhead" className="col-md-9 col-sm-9 col-xs-12">
@@ -32,9 +45,10 @@ export class LabResultView extends React.Component<ILabInfoProps> {
                                 progress={latest.score}
                                 status={latest.status}
                                 authorName={this.props.submissionLink.authorName}
-                                onSubmissionStatusUpdate={this.props.onSubmissionStatusUpdate}
-                                onSubmissionRebuild={this.props.onSubmissionRebuild}
+                                updateSubmissionStatus={this.props.updateSubmissionStatus}
+                                rebuildSubmission={this.props.rebuildSubmission}
                             />
+                            {this.props.teacherPageView ? commentDiv : null}
                             <LastBuildInfo
                                 submission={latest}
                                 slipdays={this.props.slipdays}

@@ -269,6 +269,19 @@ table thead tr:first-child {
     float: left;
 }
 
+.lab-comment > h3{ 
+    margin: 0;
+    padding: 0;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-bottom: solid slategray 1px;
+}
+
+.lab-comment {
+    border: solid slategray 1px;
+    padding: 3 5 5 5;
+}
+
 .lab-btn {
     display: inline-block;
     flex: 1;
@@ -590,6 +603,20 @@ table thead tr:first-child {
   
 .switch-toggle label:not(.disabled) {
     cursor: pointer;
+}
+
+.user-comment {
+    width: fit-content;
+}
+
+.comment-pic {
+    display: block;
+    float: left;
+}
+
+.comment-body {
+    display: block;
+    float: right;
 }
 
 /* loader shown while waiting for data being fetched from the server */

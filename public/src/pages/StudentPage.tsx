@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Course, Enrollment, Group, Repository } from "../../proto/ag_pb";
+import { Comment, Course, Enrollment, Group, Repository } from "../../proto/ag_pb";
 import { CoursesOverview, GroupForm, GroupInfo, SingleCourseOverview, StudentLab } from "../components";
 import { CollapsableNavMenu } from "../components/navigation/CollapsableNavMenu";
 import { ILinkCollection } from "../managers";
@@ -28,7 +28,7 @@ export class StudentPage extends ViewPage {
     private GroupUserCourses: IAllSubmissionsForEnrollment[] = [];
     private selectedUserGroupCourse: IAllSubmissionsForEnrollment | undefined;
 
-    private selectedAssignment: ISubmissionLink | undefined;
+    private selectedSubmissionLink: ISubmissionLink | undefined;
 
     constructor(users: UserManager, navMan: NavigationManager, courseMan: CourseManager) {
         super();
@@ -129,21 +129,25 @@ export class StudentPage extends ViewPage {
         }
         if (this.selectedUserCourse) {
             this.selectAssignment(navInfo.params.labid, false);
-            if (this.selectedAssignment) {
+            if (this.selectedSubmissionLink) {
                 return <StudentLab
-                    studentSubmission={this.selectedAssignment}
+                    submissionLink={this.selectedSubmissionLink}
                     teacherPageView={false}
                     slipdays={this.selectedUserCourse.enrollment.getSlipdaysremaining()}
                     student={curUser}
                     courseURL={""}
-                    onSubmissionRebuild={async (assignmentID: number, submissionID: number) => {
+                    commenting={false}
+                    rebuildSubmission={async (assignmentID: number, submissionID: number) => {
                         const ans = await this.courseMan.rebuildSubmission(assignmentID, submissionID);
                         this.navMan.refresh();
                         return ans ? true : false;
                     }}
-                    onSubmissionStatusUpdate={async () => {
+                    updateSubmissionStatus={async () => {
                         return false;
                     }}
+                    updateComment={(comment: Comment) => {}}
+                    deleteComment={(commentID: number) => {}}
+                    toggleCommenting={() => {}}
                     >
                 </StudentLab>;
             }
@@ -160,21 +164,25 @@ export class StudentPage extends ViewPage {
         this.selectGroupCourse(navInfo.params.courseid);
         if (this.selectedUserGroupCourse) {
             this.selectAssignment(navInfo.params.labid, true);
-            if (this.selectedAssignment) {
+            if (this.selectedSubmissionLink) {
                 return <StudentLab
-                    studentSubmission={this.selectedAssignment}
+                    submissionLink={this.selectedSubmissionLink}
                     teacherPageView={false}
                     slipdays={this.selectedUserGroupCourse.enrollment.getSlipdaysremaining()}
                     courseURL={""}
                     student={curUser}
-                    onSubmissionRebuild={async (assignmentID: number, submissionID: number) => {
+                    commenting={false}
+                    rebuildSubmission={async (assignmentID: number, submissionID: number) => {
                         const ans = await this.courseMan.rebuildSubmission(assignmentID, submissionID);
                         this.navMan.refresh();
                         return ans ? true : false;
                     }}
-                    onSubmissionStatusUpdate={async () => {
+                    updateSubmissionStatus={async () => {
                         return false;
                     }}
+                    updateComment={(comment: Comment) => {}}
+                    deleteComment={(commentID: number) => {}}
+                    toggleCommenting={() => {}}
                   >
                 </StudentLab>;
             }
@@ -331,12 +339,12 @@ export class StudentPage extends ViewPage {
 
     private selectAssignment(labId: number, groupLab: boolean) {
         if (this.selectedUserCourse && !groupLab) {
-            this.selectedAssignment = this.selectedUserCourse.labs.find(
+            this.selectedSubmissionLink = this.selectedUserCourse.labs.find(
                 (e) => e.assignment.getId() === labId,
             );
         }
         if (this.selectedUserGroupCourse && groupLab) {
-            this.selectedAssignment = this.selectedUserGroupCourse.labs.find(
+            this.selectedSubmissionLink = this.selectedUserGroupCourse.labs.find(
                 (e) => e.assignment.getId() === labId,
             );
         }

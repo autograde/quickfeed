@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Assignment, Course, User, Submission } from "../../../proto/ag_pb";
+import { Assignment, Comment, Course, User, Submission } from "../../../proto/ag_pb";
 import { DynamicTable, Row, Search, StudentLab } from "../../components";
 import { IAllSubmissionsForEnrollment, ISubmissionLink, ISubmission } from "../../models";
 import { ICellElement } from "../data/DynamicTable";
@@ -8,12 +8,15 @@ import { searchForLabs, userRepoLink, getSlipDays, legalIndex, groupRepoLink } f
 import { formatDate } from '../../helper';
 
 interface IResultsProps {
+    currentUser: number;
     course: Course;
     courseURL: string;
     allCourseSubmissions: IAllSubmissionsForEnrollment[];
     assignments: Assignment[];
     courseCreatorView: boolean;
-    onSubmissionStatusUpdate: (submission: ISubmission) => Promise<boolean>;
+    updateSubmissionStatus: (submission: ISubmission) => Promise<boolean>;
+    updateComment: (comment: Comment) => Promise<boolean>;
+    deleteComment: (commentID: number) => void;
     onSubmissionRebuild: (assignmentID: number, submissionID: number) => Promise<ISubmission | null>;
 }
 
@@ -33,16 +36,16 @@ export class Results extends React.Component<IResultsProps, IResultsState> {
         const courseAssignments = currentStudent ? currentStudent.course.getAssignmentsList() : null;
         if (currentStudent && courseAssignments && courseAssignments.length > 0) {
             this.state = {
+                ignoreShortcuts: false,
                 // Only using the first student to fetch assignments.
                 selectedSubmission: currentStudent.labs[0],
                 allSubmissions: sortByScore(this.props.allCourseSubmissions, this.props.assignments, false),
-                ignoreShortcuts: false,
             };
         } else {
             this.state = {
+                ignoreShortcuts: false,
                 selectedSubmission: undefined,
                 allSubmissions: sortByScore(this.props.allCourseSubmissions, this.props.assignments, false),
-                ignoreShortcuts: false,
             };
         }
     }
@@ -54,16 +57,19 @@ export class Results extends React.Component<IResultsProps, IResultsState> {
             && this.state.selectedSubmission && this.state.selectedStudent
         ) {
             studentLab = <StudentLab
-                studentSubmission={this.state.selectedSubmission}
+                submissionLink={this.state.selectedSubmission}
                 courseURL={this.props.courseURL}
                 student={this.state.selectedStudent.enrollment.getUser() ?? new User()}
                 teacherPageView={true}
+                commenting={this.state.ignoreShortcuts}
                 slipdays={this.state.selectedSubmission.submission ? getSlipDays(this.props.allCourseSubmissions, this.state.selectedSubmission.submission, false) : 0}
-                onSubmissionRebuild={() => this.rebuildSubmission()}
-                onSubmissionStatusUpdate={(status: Submission.Status) => this.updateSubmissionStatus(status)}
+                rebuildSubmission={() => this.rebuildSubmission()}
+                updateSubmissionStatus={(status: Submission.Status) => this.updateSubmissionStatus(status)}
+                updateComment={(comment: Comment) => this.setSubmissionComment(comment)}
+                deleteComment={(commentID: number) => this.props.deleteComment(commentID)}
+                toggleCommenting={(on: boolean) => this.toggleCommenting(on)}
             />;
         }
-
 
         return (
             <div
@@ -140,7 +146,7 @@ export class Results extends React.Component<IResultsProps, IResultsState> {
         if (currentSubmissionLink && selectedSubmission) {
             const previousStatus = selectedSubmission.status;
             selectedSubmission.status = status;
-            const ans = await this.props.onSubmissionStatusUpdate(selectedSubmission);
+            const ans = await this.props.updateSubmissionStatus(selectedSubmission);
             if (ans) {
                 selectedSubmission.approvedDate = new Date().toLocaleString();
                 // If the submission is for group assignment, every group member will have a copy
@@ -169,6 +175,19 @@ export class Results extends React.Component<IResultsProps, IResultsState> {
             this.setState({
                 selectedSubmission: currentSubmissionLink,
             });
+        }
+    }
+
+    private async setSubmissionComment(comment: Comment) {
+        const selected = this.state.selectedSubmission?.submission;
+        if (selected) {
+            const current = this.state.selectedSubmission;
+            const ans = await this.props.updateComment(comment);
+            if (ans) {
+                this.setState({
+                    selectedSubmission: current,
+                });
+            }
         }
     }
 
@@ -278,5 +297,11 @@ export class Results extends React.Component<IResultsProps, IResultsState> {
                 }
             }
         }
+    }
+
+    private toggleCommenting(toggleOn: boolean) {
+        this.setState({
+            ignoreShortcuts: toggleOn,
+        })
     }
 }

@@ -1,4 +1,4 @@
-import { Assignment, Course, Enrollment, Review, Submission } from '../proto/ag_pb';
+import { Assignment, Comment, Course, Enrollment, Review, Submission } from '../proto/ag_pb';
 
 export interface IUser {
     id: number;
@@ -60,6 +60,7 @@ export interface ISubmission {
     buildLog: string;
     testCases: ITestCases[];
     reviews: Review[];
+    comments: Comment[];
     released: boolean;
     status: Submission.Status;
     approvedDate: string;

@@ -171,7 +171,7 @@ func (s *AutograderService) UpdateCourse(ctx context.Context, in *pb.Course) (*p
 	courseID := in.GetID()
 	if !s.isTeacher(usr.GetID(), courseID) {
 		s.logger.Error("UpdateCourse failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update course")
+		return nil, ErrNotCourseTeacher
 	}
 
 	if err = s.updateCourse(ctx, scm, in); err != nil {
@@ -251,7 +251,7 @@ func (s *AutograderService) UpdateEnrollment(ctx context.Context, in *pb.Enrollm
 	}
 	if !s.isTeacher(usr.GetID(), in.GetCourseID()) {
 		s.logger.Error("UpdateEnrollment failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update enrollment status")
+		return nil, ErrNotCourseTeacher
 	}
 	if s.isCourseCreator(in.CourseID, in.UserID) {
 		s.logger.Errorf("UpdateEnrollment failed: user %s attempted to demote course creator", usr.GetName())
@@ -281,7 +281,7 @@ func (s *AutograderService) UpdateEnrollments(ctx context.Context, in *pb.Course
 	}
 	if !s.isTeacher(usr.GetID(), in.GetCourseID()) {
 		s.logger.Error("UpdateEnrollments failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update enrollment status")
+		return nil, ErrNotCourseTeacher
 	}
 	err = s.updateEnrollments(ctx, scm, in.GetCourseID())
 	if err != nil {
@@ -381,7 +381,7 @@ func (s *AutograderService) GetGroupsByCourse(ctx context.Context, in *pb.Course
 	courseID := in.GetCourseID()
 	if !s.isTeacher(usr.GetID(), courseID) {
 		s.logger.Error("GetGroups failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can access other groups")
+		return nil, ErrNotCourseTeacher
 	}
 	groups, err := s.getGroups(in)
 	if err != nil {
@@ -408,7 +408,7 @@ func (s *AutograderService) GetGroupByUserAndCourse(ctx context.Context, in *pb.
 	}
 	if !(group.Contains(usr) || s.isTeacher(usr.GetID(), group.GetCourseID())) {
 		s.logger.Error("GetGroupByUserAndCourse failed: user is not group member or teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only group members and teachers can access another group")
+		return nil, ErrNotCourseTeacher
 	}
 	return group, nil
 }
@@ -450,7 +450,7 @@ func (s *AutograderService) UpdateGroup(ctx context.Context, in *pb.Group) (*pb.
 	}
 	if !s.isTeacher(usr.GetID(), in.GetCourseID()) {
 		s.logger.Error("UpdateGroup failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update groups")
+		return nil, ErrNotCourseTeacher
 	}
 	err = s.updateGroup(ctx, scm, in)
 	if err != nil {
@@ -481,7 +481,7 @@ func (s *AutograderService) DeleteGroup(ctx context.Context, in *pb.GroupRequest
 	}
 	if !s.isTeacher(usr.GetID(), grp.GetCourseID()) {
 		s.logger.Error("DeleteGroup failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can delete groups")
+		return nil, ErrNotCourseTeacher
 	}
 	if err = s.deleteGroup(ctx, scm, in); err != nil {
 		s.logger.Errorf("DeleteGroup failed: %w", err)
@@ -539,7 +539,7 @@ func (s *AutograderService) GetSubmissionsByCourse(ctx context.Context, in *pb.S
 	}
 	if !(s.isTeacher(usr.GetID(), in.GetCourseID()) || usr.IsAdmin && s.isEnrolled(usr.GetID(), in.GetCourseID())) {
 		s.logger.Errorf("GetCourseLabSubmissions failed: user %s is not teacher or submission author", usr.GetLogin())
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can get all lab submissions")
+		return nil, ErrNotCourseTeacher
 	}
 	s.logger.Debugf("GetCourseLabSubmissions: %v", in)
 
@@ -567,7 +567,7 @@ func (s *AutograderService) UpdateSubmission(ctx context.Context, in *pb.UpdateS
 		s.logger.Error("UpdateSubmission failed: user is not teacher")
 		return nil, status.Errorf(codes.PermissionDenied, "only teachers can approve submissions")
 	}
-	err = s.updateSubmission(in.GetCourseID(), in.GetSubmissionID(), in.GetStatus(), in.GetReleased(), in.GetScore())
+	err = s.updateSubmission(in)
 	if err != nil {
 		s.logger.Errorf("UpdateSubmission failed: %w", err)
 		err = status.Errorf(codes.InvalidArgument, "failed to approve submission")
@@ -575,17 +575,71 @@ func (s *AutograderService) UpdateSubmission(ctx context.Context, in *pb.UpdateS
 	return &pb.Void{}, err
 }
 
-// RebuildSubmission rebuilds the submission with the given ID
+// RebuildSubmission rebuilds the submission with the given ID.
+// Access policy: all users.
 func (s *AutograderService) RebuildSubmission(ctx context.Context, in *pb.RebuildRequest) (*pb.Submission, error) {
 	if !s.isValidSubmission(in.GetSubmissionID()) {
-		s.logger.Errorf("ApproveSubmission failed: submitter has no access to the course")
+		s.logger.Errorf("RebuildSubmission failed: submitter has no access to the course")
 		return nil, status.Errorf(codes.PermissionDenied, "submitter has no course access")
 	}
 	submission, err := s.rebuildSubmission(ctx, in)
 	if err != nil {
-		return nil, err
+		s.logger.Errorf("RebuildSubmission failed: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "failed to rebuild submission")
 	}
 	return submission, nil
+}
+
+// UpdateComment sets or edits a comment.
+// Access policy: author of the comment enrolled as course teacher.
+func (s *AutograderService) UpdateComment(ctx context.Context, in *pb.Comment) (*pb.Comment, error) {
+	usr, err := s.getCurrentUser(ctx)
+	if err != nil {
+		s.logger.Errorf("UpdateComment failed: authentication error: %v", err)
+		return nil, ErrInvalidUserInfo
+	}
+
+	if !s.isTeacher(usr.ID, in.CourseID) {
+		s.logger.Errorf("UpdateComment failed: user ID %d is not a teacher of course %d", usr.ID, in.CourseID)
+		return nil, ErrNotCourseTeacher
+	}
+
+	if in.UserID != usr.ID {
+		s.logger.Errorf("UpdateComment failed: User ID is %d, author ID is %d", usr.ID, in.UserID)
+		return nil, ErrNotCommentAuthor
+	}
+
+	comment, err := s.updateComment(in)
+	if err != nil {
+		s.logger.Errorf("UpdateComment failed: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "failed to add or update comment")
+	}
+	if comment.ID == 0 {
+		s.logger.Warnf("UpdateComment: ID of a new comment by %s is still 0", usr.GetLogin())
+	}
+	return comment, nil
+}
+
+// DeleteComment removes a comment.
+// Access policy: course teacher.
+func (s *AutograderService) DeleteComment(ctx context.Context, in *pb.DeleteCommentRequest) (*pb.Void, error) {
+
+	usr, err := s.getCurrentUser(ctx)
+	if err != nil {
+		s.logger.Errorf("DeleteComment failed: authentication error: %v", err)
+		return nil, ErrInvalidUserInfo
+	}
+
+	if !s.isTeacher(usr.ID, in.CourseID) {
+		s.logger.Errorf("DeleteComment failed: user ID %d is not a teacher of course %d", usr.ID, in.CourseID)
+		return nil, ErrNotCourseTeacher
+	}
+
+	if err := s.deleteComment(in.CommentID); err != nil {
+		s.logger.Errorf("DeleteComment failed: %v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "failed to delete comment")
+	}
+	return &pb.Void{}, nil
 }
 
 // CreateBenchmark adds a new grading benchmark for an assignment
@@ -664,7 +718,7 @@ func (s *AutograderService) CreateReview(ctx context.Context, in *pb.ReviewReque
 	}
 	if !s.isTeacher(usr.ID, in.GetCourseID()) {
 		s.logger.Error("CreateReview failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can add reviews")
+		return nil, ErrNotCourseTeacher
 	}
 	if !usr.IsOwner(in.Review.GetReviewerID()) {
 		s.logger.Errorf("CreateReview failed: current user's ID: %d, when the reviewer's ID is %d ", usr.ID, in.Review.ReviewerID)
@@ -691,7 +745,7 @@ func (s *AutograderService) UpdateReview(ctx context.Context, in *pb.ReviewReque
 	}
 	if !s.isTeacher(usr.ID, in.GetCourseID()) {
 		s.logger.Error("UpdateReview failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update reviews")
+		return nil, ErrNotCourseTeacher
 	}
 	if !usr.IsOwner(in.Review.GetReviewerID()) {
 		s.logger.Errorf("UpdateReview failed: current user's ID: %d, when the original reviewer's ID is %d ", usr.ID, in.Review.ReviewerID)
@@ -717,7 +771,7 @@ func (s *AutograderService) UpdateSubmissions(ctx context.Context, in *pb.Update
 	}
 	if !s.isTeacher(usr.ID, in.GetCourseID()) {
 		s.logger.Error("ReleaseAll failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update reviews")
+		return nil, ErrNotCourseTeacher
 	}
 
 	if err = s.updateSubmissions(in); err != nil {
@@ -737,9 +791,9 @@ func (s *AutograderService) GetReviewers(ctx context.Context, in *pb.SubmissionR
 	}
 	if !s.isTeacher(usr.GetID(), in.GetCourseID()) {
 		s.logger.Error("GetReviewers failed: user is not course creator")
-		return nil, status.Errorf(codes.PermissionDenied, "only course creator teacher can request information about reviewers")
+		return nil, ErrNotCourseTeacher
 	}
-	reviewers, err := s.getReviewers(in.SubmissionID)
+	reviewers, err := s.getReviewersBySubmission(in.SubmissionID)
 	if err != nil {
 		s.logger.Errorf("GetReviewers failed: error fetching from database: %s", err.Error)
 		return nil, status.Errorf(codes.InvalidArgument, "failed to get reviewers")
@@ -771,7 +825,7 @@ func (s *AutograderService) UpdateAssignments(ctx context.Context, in *pb.Course
 	}
 	if !s.isTeacher(usr.ID, courseID) {
 		s.logger.Error("UpdateAssignments failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can update course assignments")
+		return nil, ErrNotCourseTeacher
 	}
 	err = s.updateAssignments(ctx, scm, courseID)
 	if err != nil {
@@ -859,7 +913,7 @@ func (s *AutograderService) IsEmptyRepo(ctx context.Context, in *pb.RepositoryRe
 
 	if !s.isTeacher(usr.GetID(), in.GetCourseID()) {
 		s.logger.Error("IsEmptyRepo failed: user is not teacher")
-		return nil, status.Errorf(codes.PermissionDenied, "only teachers can access repository info")
+		return nil, ErrNotCourseTeacher
 	}
 
 	if err := s.isEmptyRepo(ctx, scm, in); err != nil {

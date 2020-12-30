@@ -11,8 +11,8 @@ interface ILabResultProps {
     lab: string;
     authorName?: string;
     teacherView: boolean;
-    onSubmissionStatusUpdate: (status: Submission.Status) => void;
-    onSubmissionRebuild: (assignmentID: number, submissionID: number) => Promise<boolean>;
+    updateSubmissionStatus: (status: Submission.Status) => void;
+    rebuildSubmission: (assignmentID: number, submissionID: number) => Promise<boolean>;
 }
 
 interface ILabResultState {
@@ -29,11 +29,6 @@ export class LabResult extends React.Component<ILabResultProps, ILabResultState>
     }
 
     public render() {
-        let buttonDiv = <div></div>;
-        if (this.props.teacherView) {
-            buttonDiv = this.actionButtons();
-        }
-
         let labHeading: JSX.Element;
         if (this.props.authorName) {
             labHeading = <h3>{this.props.authorName + ": "} {this.props.lab}</h3>;
@@ -52,7 +47,7 @@ export class LabResult extends React.Component<ILabResultProps, ILabResultState>
                         progress={this.props.progress}
                         scoreToPass={this.props.scoreLimit}
                     ></ProgressBar></Row>
-                    <Row>{buttonDiv}</Row>
+                    <Row>{this.actionButtons()}</Row>
             </div>
         );
     }
@@ -61,7 +56,7 @@ export class LabResult extends React.Component<ILabResultProps, ILabResultState>
         this.setState({
             rebuilding: true,
         });
-        await this.props.onSubmissionRebuild(this.props.assignmentID, this.props.submissionID).then(() => {
+        await this.props.rebuildSubmission(this.props.assignmentID, this.props.submissionID).then(() => {
             this.setState({
                 rebuilding: false,
             });
@@ -71,17 +66,17 @@ export class LabResult extends React.Component<ILabResultProps, ILabResultState>
     public actionButtons(): JSX.Element {
         const approveButton = <button type="button" className={this.setButtonClassColor("approve")}
             onClick={
-                () => {this.props.onSubmissionStatusUpdate(Submission.Status.APPROVED); }
+                () => {this.props.updateSubmissionStatus(Submission.Status.APPROVED); }
             }
         >{this.setButtonString("approve")}</button>;
         const revisionButton = <button type="button" className={this.setButtonClassColor("revision")}
             onClick={
-                () => {this.props.onSubmissionStatusUpdate(Submission.Status.REVISION); }
+                () => {this.props.updateSubmissionStatus(Submission.Status.REVISION); }
             }
         >{this.setButtonString("revision")}</button>;
         const rejectButton = <button type="button" className={this.setButtonClassColor("reject")}
             onClick={
-                () => {this.props.onSubmissionStatusUpdate(Submission.Status.REJECTED); }
+                () => {this.props.updateSubmissionStatus(Submission.Status.REJECTED); }
             }
         >{this.setButtonString("reject")}</button>;
         const rebuildButton = <button type="button" className={this.setButtonClassColor("rebuild")}
@@ -132,5 +127,4 @@ export class LabResult extends React.Component<ILabResultProps, ILabResultState>
             }
         }
     }
-
 }

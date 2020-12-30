@@ -199,11 +199,23 @@ message Submission {
     bool released = 9; // defines whether the feedback is visible for the student or group members
     Status status = 10;
     string approvedDate = 11;
-    repeated Review reviews = 12;
+    repeated Comment comments = 12;
+    repeated Review reviews = 13;
 }
 
 message Submissions {
     repeated Submission submissions = 1;
+}
+
+message Comment {
+    uint64 ID = 1;
+    uint64 userID = 2;
+    string name = 3;
+    string avatarURL = 4;
+    uint64 submissionID = 5;
+    uint64 courseID = 6;
+    string message = 7;
+    string posted = 8;
 }
 
 //   MANUAL GRADING   //
@@ -315,7 +327,7 @@ message UpdateSubmissionRequest {
     uint64 courseID = 2;
     uint32 score = 3;
     bool released = 4;
-    Submission.Status status = 5;
+    Submission.Status status = 6;
 }
 
 message UpdateSubmissionsRequest {
@@ -381,6 +393,12 @@ message CourseUserRequest {
     string userLogin = 3;
 }
 
+message DeleteCommentRequest {
+    uint64 commentID = 1;
+    uint64 courseID = 2;
+}
+
+
 // Void contains no fields. A server response with a Void still contains a gRPC status code,
 // which can be checked for success or failure. Status code 0 indicates that the requested action was successful,
 // whereas any other status code indicates some failure. As such, the status code can be used as a boolean result from the server.
@@ -436,6 +454,9 @@ service AutograderService {
     rpc UpdateSubmission(UpdateSubmissionRequest) returns (Void) {}
     rpc UpdateSubmissions(UpdateSubmissionsRequest) returns (Void) {}
     rpc RebuildSubmission(RebuildRequest) returns (Submission) {}
+
+    rpc UpdateComment(Comment) returns (Comment) {}
+    rpc DeleteComment(DeleteCommentRequest) returns (Void) {}
 
     // manual grading //
     rpc CreateBenchmark(GradingBenchmark) returns (GradingBenchmark) {}
