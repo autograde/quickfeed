@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/gob"
 	"net/http"
 	"strconv"
@@ -13,11 +14,14 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 func init() {
 	gob.Register(&UserSession{})
-	TokenStore = &UserToken{store: make(map[string]uint64)}
 }
 
 // Session keys.
@@ -49,23 +53,30 @@ func newUserSession(id uint64) *UserSession {
 
 // UserToken holds a map from session cookies to user IDs.
 type UserToken struct {
-	store map[string]uint64
+	store map[string]*http.Request
 }
 
-func (ut *UserToken) add(token string, id uint64) {
-	for token, userID := range TokenStore.store {
-		if userID == id {
-			delete(TokenStore.store, token)
+var TokenStore = &UserToken{store: make(map[string]*http.Request)}
+
+func (ut *UserToken) add(token string) {
+	if ut.store[token] == nil {
+		if request, err := http.NewRequest("GET", "/", nil); err == nil {
+			request.Header.Set(Cookie, token)
+			ut.store[token] = request
 		}
 	}
-	ut.store[token] = id
 }
 
 func (ut *UserToken) Get(token string) uint64 {
-	return TokenStore.store[token]
+	ut.add(token)
+	if sess, err := gothic.Store.Get(ut.store[token], SessionKey); err == nil {
+		if i, ok := sess.Values[UserKey]; ok {
+			us := i.(*UserSession)
+			return us.ID
+		}
+	}
+	return 0
 }
-
-var TokenStore *UserToken
 
 func (us *UserSession) enableProvider(provider string) {
 	us.Providers[provider] = struct{}{}
@@ -286,6 +297,9 @@ func OAuth2Callback(logger *zap.Logger, db database.Database) echo.HandlerFunc {
 			logger.Error(err.Error())
 			return err
 		}
+
+		// TODO: Could register a session token and ID in UserToken from here
+
 		return c.Redirect(http.StatusFound, redirect)
 	}
 }
@@ -345,14 +359,6 @@ func AccessControl(logger *zap.Logger, db database.Database, scms *Scms) echo.Mi
 				return echo.NewHTTPError(http.StatusBadRequest, err)
 			}
 
-			token, err := c.Cookie(SessionKey)
-			if err != nil {
-				return err
-			}
-			if id := TokenStore.Get(token.String()); id != user.GetID() {
-				TokenStore.add(token.String(), user.GetID())
-			}
-
 			// TODO: Add access control list.
 			// - Extract endpoint.
 			// - Verify whether the user has sufficient rights. This
@@ -384,4 +390,34 @@ func extractState(r *http.Request, key string) (redirect string, teacher bool) {
 		return "/", teacher
 	}
 	return url[1:], teacher
+}
+
+var ErrInvalidSessionCookie = status.Errorf(codes.Unauthenticated, "Request does not contain a valid session cookie.")
+var ErrContextMetadata = status.Errorf(codes.Unauthenticated, "Could not grab metadata from context")
+
+func UserVerifier() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		meta, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, ErrContextMetadata
+		}
+		meta, err := userValidation(meta)
+		if err != nil {
+			return nil, err
+		}
+		ctx = metadata.NewOutgoingContext(ctx, meta)
+		resp, err := handler(ctx, req)
+		return resp, err
+	}
+}
+
+// userValidation returns modified metadata containing a valid user. An error is returned if the user is not authenticated.
+func userValidation(meta metadata.MD) (metadata.MD, error) {
+	for _, cookie := range meta.Get(Cookie) {
+		if user := TokenStore.Get(cookie); user > 0 {
+			meta.Set(UserKey, strconv.FormatUint(user, 10))
+			return meta, nil
+		}
+	}
+	return nil, ErrInvalidSessionCookie
 }
