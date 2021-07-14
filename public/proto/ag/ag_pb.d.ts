@@ -752,6 +752,9 @@ export class GradingBenchmark extends jspb.Message {
   getAssignmentid(): number;
   setAssignmentid(value: number): GradingBenchmark;
 
+  getReviewid(): number;
+  setReviewid(value: number): GradingBenchmark;
+
   getHeading(): string;
   setHeading(value: string): GradingBenchmark;
 
@@ -775,6 +778,7 @@ export namespace GradingBenchmark {
   export type AsObject = {
     id: number,
     assignmentid: number,
+    reviewid: number,
     heading: string,
     comment: string,
     criteriaList: Array<GradingCriterion.AsObject>,
@@ -855,9 +859,6 @@ export class Review extends jspb.Message {
   getReviewerid(): number;
   setReviewerid(value: number): Review;
 
-  getReview(): string;
-  setReview(value: string): Review;
-
   getFeedback(): string;
   setFeedback(value: string): Review;
 
@@ -888,7 +889,6 @@ export namespace Review {
     id: number,
     submissionid: number,
     reviewerid: number,
-    review: string,
     feedback: string,
     ready: boolean,
     score: number,

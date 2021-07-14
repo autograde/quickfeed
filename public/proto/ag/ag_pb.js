@@ -2,14 +2,11 @@
 /**
  * @fileoverview
  * @enhanceable
- * @suppress {missingRequire} reports error on implicit type usages.
  * @suppress {messageConventions} JS Compiler reports an error if a variable or
  *     field starts with 'MSG_' and isn't a translatable message.
  * @public
  */
 // GENERATED CODE -- DO NOT EDIT!
-/* eslint-disable */
-// @ts-nocheck
 
 var jspb = require('google-protobuf');
 var goog = jspb;
@@ -6684,7 +6681,7 @@ proto.ag.Submissions.prototype.clearSubmissionsList = function() {
  * @private {!Array<number>}
  * @const
  */
-proto.ag.GradingBenchmark.repeatedFields_ = [5];
+proto.ag.GradingBenchmark.repeatedFields_ = [6];
 
 
 
@@ -6719,8 +6716,9 @@ proto.ag.GradingBenchmark.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     assignmentid: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    heading: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    comment: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    reviewid: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    heading: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    comment: jspb.Message.getFieldWithDefault(msg, 5, ""),
     criteriaList: jspb.Message.toObjectList(msg.getCriteriaList(),
     proto.ag.GradingCriterion.toObject, includeInstance)
   };
@@ -6768,14 +6766,18 @@ proto.ag.GradingBenchmark.deserializeBinaryFromReader = function(msg, reader) {
       msg.setAssignmentid(value);
       break;
     case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setHeading(value);
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setReviewid(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.setComment(value);
+      msg.setHeading(value);
       break;
     case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setComment(value);
+      break;
+    case 6:
       var value = new proto.ag.GradingCriterion;
       reader.readMessage(value,proto.ag.GradingCriterion.deserializeBinaryFromReader);
       msg.addCriteria(value);
@@ -6823,24 +6825,31 @@ proto.ag.GradingBenchmark.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getHeading();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getReviewid();
+  if (f !== 0) {
+    writer.writeUint64(
       3,
       f
     );
   }
-  f = message.getComment();
+  f = message.getHeading();
   if (f.length > 0) {
     writer.writeString(
       4,
       f
     );
   }
+  f = message.getComment();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
   f = message.getCriteriaList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      5,
+      6,
       f,
       proto.ag.GradingCriterion.serializeBinaryToWriter
     );
@@ -6885,28 +6894,28 @@ proto.ag.GradingBenchmark.prototype.setAssignmentid = function(value) {
 
 
 /**
- * optional string heading = 3;
+ * optional uint64 ReviewID = 3;
+ * @return {number}
+ */
+proto.ag.GradingBenchmark.prototype.getReviewid = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.ag.GradingBenchmark} returns this
+ */
+proto.ag.GradingBenchmark.prototype.setReviewid = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional string heading = 4;
  * @return {string}
  */
 proto.ag.GradingBenchmark.prototype.getHeading = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.ag.GradingBenchmark} returns this
- */
-proto.ag.GradingBenchmark.prototype.setHeading = function(value) {
-  return jspb.Message.setProto3StringField(this, 3, value);
-};
-
-
-/**
- * optional string comment = 4;
- * @return {string}
- */
-proto.ag.GradingBenchmark.prototype.getComment = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
@@ -6915,18 +6924,36 @@ proto.ag.GradingBenchmark.prototype.getComment = function() {
  * @param {string} value
  * @return {!proto.ag.GradingBenchmark} returns this
  */
-proto.ag.GradingBenchmark.prototype.setComment = function(value) {
+proto.ag.GradingBenchmark.prototype.setHeading = function(value) {
   return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
 /**
- * repeated GradingCriterion criteria = 5;
+ * optional string comment = 5;
+ * @return {string}
+ */
+proto.ag.GradingBenchmark.prototype.getComment = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.ag.GradingBenchmark} returns this
+ */
+proto.ag.GradingBenchmark.prototype.setComment = function(value) {
+  return jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * repeated GradingCriterion criteria = 6;
  * @return {!Array<!proto.ag.GradingCriterion>}
  */
 proto.ag.GradingBenchmark.prototype.getCriteriaList = function() {
   return /** @type{!Array<!proto.ag.GradingCriterion>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.ag.GradingCriterion, 5));
+    jspb.Message.getRepeatedWrapperField(this, proto.ag.GradingCriterion, 6));
 };
 
 
@@ -6935,7 +6962,7 @@ proto.ag.GradingBenchmark.prototype.getCriteriaList = function() {
  * @return {!proto.ag.GradingBenchmark} returns this
 */
 proto.ag.GradingBenchmark.prototype.setCriteriaList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 5, value);
+  return jspb.Message.setRepeatedWrapperField(this, 6, value);
 };
 
 
@@ -6945,7 +6972,7 @@ proto.ag.GradingBenchmark.prototype.setCriteriaList = function(value) {
  * @return {!proto.ag.GradingCriterion}
  */
 proto.ag.GradingBenchmark.prototype.addCriteria = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 5, opt_value, proto.ag.GradingCriterion, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 6, opt_value, proto.ag.GradingCriterion, opt_index);
 };
 
 
@@ -7413,7 +7440,7 @@ proto.ag.GradingCriterion.prototype.setComment = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.ag.Review.repeatedFields_ = [8];
+proto.ag.Review.repeatedFields_ = [7];
 
 
 
@@ -7449,13 +7476,12 @@ proto.ag.Review.toObject = function(includeInstance, msg) {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     submissionid: jspb.Message.getFieldWithDefault(msg, 2, 0),
     reviewerid: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    review: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    feedback: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    ready: jspb.Message.getBooleanFieldWithDefault(msg, 6, false),
-    score: jspb.Message.getFieldWithDefault(msg, 7, 0),
+    feedback: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    ready: jspb.Message.getBooleanFieldWithDefault(msg, 5, false),
+    score: jspb.Message.getFieldWithDefault(msg, 6, 0),
     benchmarksList: jspb.Message.toObjectList(msg.getBenchmarksList(),
     proto.ag.GradingBenchmark.toObject, includeInstance),
-    edited: jspb.Message.getFieldWithDefault(msg, 9, "")
+    edited: jspb.Message.getFieldWithDefault(msg, 8, "")
   };
 
   if (includeInstance) {
@@ -7506,26 +7532,22 @@ proto.ag.Review.deserializeBinaryFromReader = function(msg, reader) {
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
-      msg.setReview(value);
-      break;
-    case 5:
-      var value = /** @type {string} */ (reader.readString());
       msg.setFeedback(value);
       break;
-    case 6:
+    case 5:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setReady(value);
       break;
-    case 7:
+    case 6:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setScore(value);
       break;
-    case 8:
+    case 7:
       var value = new proto.ag.GradingBenchmark;
       reader.readMessage(value,proto.ag.GradingBenchmark.deserializeBinaryFromReader);
       msg.addBenchmarks(value);
       break;
-    case 9:
+    case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setEdited(value);
       break;
@@ -7579,38 +7601,31 @@ proto.ag.Review.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getReview();
+  f = message.getFeedback();
   if (f.length > 0) {
     writer.writeString(
       4,
       f
     );
   }
-  f = message.getFeedback();
-  if (f.length > 0) {
-    writer.writeString(
-      5,
-      f
-    );
-  }
   f = message.getReady();
   if (f) {
     writer.writeBool(
-      6,
+      5,
       f
     );
   }
   f = message.getScore();
   if (f !== 0) {
     writer.writeUint64(
-      7,
+      6,
       f
     );
   }
   f = message.getBenchmarksList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      8,
+      7,
       f,
       proto.ag.GradingBenchmark.serializeBinaryToWriter
     );
@@ -7618,7 +7633,7 @@ proto.ag.Review.serializeBinaryToWriter = function(message, writer) {
   f = message.getEdited();
   if (f.length > 0) {
     writer.writeString(
-      9,
+      8,
       f
     );
   }
@@ -7680,10 +7695,10 @@ proto.ag.Review.prototype.setReviewerid = function(value) {
 
 
 /**
- * optional string review = 4;
+ * optional string feedback = 4;
  * @return {string}
  */
-proto.ag.Review.prototype.getReview = function() {
+proto.ag.Review.prototype.getFeedback = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
@@ -7692,35 +7707,17 @@ proto.ag.Review.prototype.getReview = function() {
  * @param {string} value
  * @return {!proto.ag.Review} returns this
  */
-proto.ag.Review.prototype.setReview = function(value) {
+proto.ag.Review.prototype.setFeedback = function(value) {
   return jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
 /**
- * optional string feedback = 5;
- * @return {string}
- */
-proto.ag.Review.prototype.getFeedback = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.ag.Review} returns this
- */
-proto.ag.Review.prototype.setFeedback = function(value) {
-  return jspb.Message.setProto3StringField(this, 5, value);
-};
-
-
-/**
- * optional bool ready = 6;
+ * optional bool ready = 5;
  * @return {boolean}
  */
 proto.ag.Review.prototype.getReady = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 6, false));
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 5, false));
 };
 
 
@@ -7729,16 +7726,16 @@ proto.ag.Review.prototype.getReady = function() {
  * @return {!proto.ag.Review} returns this
  */
 proto.ag.Review.prototype.setReady = function(value) {
-  return jspb.Message.setProto3BooleanField(this, 6, value);
+  return jspb.Message.setProto3BooleanField(this, 5, value);
 };
 
 
 /**
- * optional uint64 score = 7;
+ * optional uint64 score = 6;
  * @return {number}
  */
 proto.ag.Review.prototype.getScore = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
 };
 
 
@@ -7747,17 +7744,17 @@ proto.ag.Review.prototype.getScore = function() {
  * @return {!proto.ag.Review} returns this
  */
 proto.ag.Review.prototype.setScore = function(value) {
-  return jspb.Message.setProto3IntField(this, 7, value);
+  return jspb.Message.setProto3IntField(this, 6, value);
 };
 
 
 /**
- * repeated GradingBenchmark benchmarks = 8;
+ * repeated GradingBenchmark benchmarks = 7;
  * @return {!Array<!proto.ag.GradingBenchmark>}
  */
 proto.ag.Review.prototype.getBenchmarksList = function() {
   return /** @type{!Array<!proto.ag.GradingBenchmark>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.ag.GradingBenchmark, 8));
+    jspb.Message.getRepeatedWrapperField(this, proto.ag.GradingBenchmark, 7));
 };
 
 
@@ -7766,7 +7763,7 @@ proto.ag.Review.prototype.getBenchmarksList = function() {
  * @return {!proto.ag.Review} returns this
 */
 proto.ag.Review.prototype.setBenchmarksList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 8, value);
+  return jspb.Message.setRepeatedWrapperField(this, 7, value);
 };
 
 
@@ -7776,7 +7773,7 @@ proto.ag.Review.prototype.setBenchmarksList = function(value) {
  * @return {!proto.ag.GradingBenchmark}
  */
 proto.ag.Review.prototype.addBenchmarks = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 8, opt_value, proto.ag.GradingBenchmark, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 7, opt_value, proto.ag.GradingBenchmark, opt_index);
 };
 
 
@@ -7790,11 +7787,11 @@ proto.ag.Review.prototype.clearBenchmarksList = function() {
 
 
 /**
- * optional string edited = 9;
+ * optional string edited = 8;
  * @return {string}
  */
 proto.ag.Review.prototype.getEdited = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
 };
 
 
@@ -7803,7 +7800,7 @@ proto.ag.Review.prototype.getEdited = function() {
  * @return {!proto.ag.Review} returns this
  */
 proto.ag.Review.prototype.setEdited = function(value) {
-  return jspb.Message.setProto3StringField(this, 9, value);
+  return jspb.Message.setProto3StringField(this, 8, value);
 };
 
 
@@ -9460,10 +9457,8 @@ proto.ag.EnrollmentRequest.deserializeBinaryFromReader = function(msg, reader) {
       msg.setWithactivity(value);
       break;
     case 4:
-      var values = /** @type {!Array<!proto.ag.Enrollment.UserStatus>} */ (reader.isDelimited() ? reader.readPackedEnum() : [reader.readEnum()]);
-      for (var i = 0; i < values.length; i++) {
-        msg.addStatuses(values[i]);
-      }
+      var value = /** @type {!Array<!proto.ag.Enrollment.UserStatus>} */ (reader.readPackedEnum());
+      msg.setStatusesList(value);
       break;
     default:
       reader.skipField();
@@ -9698,10 +9693,8 @@ proto.ag.EnrollmentStatusRequest.deserializeBinaryFromReader = function(msg, rea
       msg.setUserid(value);
       break;
     case 2:
-      var values = /** @type {!Array<!proto.ag.Enrollment.UserStatus>} */ (reader.isDelimited() ? reader.readPackedEnum() : [reader.readEnum()]);
-      for (var i = 0; i < values.length; i++) {
-        msg.addStatuses(values[i]);
-      }
+      var value = /** @type {!Array<!proto.ag.Enrollment.UserStatus>} */ (reader.readPackedEnum());
+      msg.setStatusesList(value);
       break;
     default:
       reader.skipField();
@@ -10892,10 +10885,8 @@ proto.ag.URLRequest.deserializeBinaryFromReader = function(msg, reader) {
       msg.setCourseid(value);
       break;
     case 2:
-      var values = /** @type {!Array<!proto.ag.Repository.Type>} */ (reader.isDelimited() ? reader.readPackedEnum() : [reader.readEnum()]);
-      for (var i = 0; i < values.length; i++) {
-        msg.addRepotypes(values[i]);
-      }
+      var value = /** @type {!Array<!proto.ag.Repository.Type>} */ (reader.readPackedEnum());
+      msg.setRepotypesList(value);
       break;
     default:
       reader.skipField();
