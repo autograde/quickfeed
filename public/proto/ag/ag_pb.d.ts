@@ -868,10 +868,10 @@ export class Review extends jspb.Message {
   getScore(): number;
   setScore(value: number): Review;
 
-  getBenchmarksList(): Array<GradingBenchmark>;
-  setBenchmarksList(value: Array<GradingBenchmark>): Review;
-  clearBenchmarksList(): Review;
-  addBenchmarks(value?: GradingBenchmark, index?: number): GradingBenchmark;
+  getGradingbenchmarksList(): Array<GradingBenchmark>;
+  setGradingbenchmarksList(value: Array<GradingBenchmark>): Review;
+  clearGradingbenchmarksList(): Review;
+  addGradingbenchmarks(value?: GradingBenchmark, index?: number): GradingBenchmark;
 
   getEdited(): string;
   setEdited(value: string): Review;
@@ -892,7 +892,7 @@ export namespace Review {
     feedback: string,
     ready: boolean,
     score: number,
-    benchmarksList: Array<GradingBenchmark.AsObject>,
+    gradingbenchmarksList: Array<GradingBenchmark.AsObject>,
     edited: string,
   }
 }
